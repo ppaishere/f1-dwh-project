@@ -1,3 +1,5 @@
 logs/
 postgres/
-*.log
+# Also ignore any hidden airflow or OS files
+.env
+.DS_Store
