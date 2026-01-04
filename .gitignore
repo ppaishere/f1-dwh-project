@@ -1,5 +1,47 @@
-logs/
-postgres/
-# Also ignore any hidden airflow or OS files
+# ========================
+# 1. Python & Môi trường ảo
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
 .env
+.venv/
+
+# ========================
+# 2. Airflow & Logs (Rất quan trọng)
+# ========================
+# Không up file log chạy hàng ngày lên git
+logs/
+*.log
+# Các file cấu hình airflow cục bộ (nếu có sinh ra)
+airflow.db
+airflow.cfg
+webserver_config.py
+standalone_admin_password.txt
+
+# ========================
+# 3. Docker & Database Volumes
+# ========================
+# Không bao giờ up thư mục chứa dữ liệu database thô lên git
+postgres/
+postgres_data/
+db_data/
+tmp/
+
+# ========================
+# 4. OS & IDE Settings (File hệ thống)
+# ========================
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ========================
+# 5. Data Files (Tùy chọn)
+# ========================
+# Nếu file csv quá nặng (>100MB), hãy bỏ comment dòng dưới
+# *.csv
+*.zip
+*.rar

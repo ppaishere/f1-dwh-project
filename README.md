@@ -1,135 +1,116 @@
-# 🗂️ 1️⃣ Create the project folder
+# 🏎️ Formula 1 End-to-End Data Engineering Project
 
-Open PowerShell:
+An end-to-end Data Warehouse project that simulates a real-world microservices environment. It ingests Formula 1 data from distributed transactional databases, transforms it using an ELT pipeline orchestrated by Airflow, and visualizes race insights via Power BI.
+
+## 🏗️ System Architecture
+
+The project simulates a distributed system where data is decoupled into specific domains (Microservices architecture) before being consolidated into a Data Warehouse.
+
+```mermaid
+graph LR
+    subgraph Sources [Simulated Microservices]
+        S1[(DB: Race Ops)] -- Port 5433 --> ETL
+        S2[(DB: Logistics)] -- Port 5434 --> ETL
+    end
+
+    subgraph Orchestration [Apache Airflow]
+        ETL[Airflow DAGs]
+    end
+
+    subgraph Warehouse [OLAP]
+        DWH[(Postgres DWH)] -- Port 5435 --> BI
+    end
+    
+    ETL --> DWH
+    DWH --> BI[Power BI Dashboard]
+
+```
+
+### Components
+
+1. **Service 1: Race Operations (Telemetry)**
+* **Type:** Transactional (OLTP)
+* **Port:** `5433`
+* **Content:** High-volume data: `lap_times`, `pit_stops`, `qualifying`, `race_results`.
+
+
+2. **Service 2: Participant Reference (Logistics)**
+* **Type:** Master Data (OLTP)
+* **Port:** `5434`
+* **Content:** Reference data: `drivers`, `constructors`, `circuits`, `seasons`.
+
+
+3. **Data Warehouse (DWH)**
+* **Type:** OLAP (Star Schema)
+* **Port:** `5435`
+* **Content:** Fact tables and Dimension tables optimized for analytics.
+
+
+
+## 📂 Project Structure
 
 ```bash
-mkdir f1
-cd f1
+├── dags/                   # Airflow DAGs (Python code for ELT)
+├── db_scripts/             # SQL scripts for database initialization
+│   ├── source_telemetry.sql
+│   ├── source_logistics.sql
+│   └── dwh_schema.sql
+├── docker-compose.yml      # Infrastructure setup
+└── README.md               # Project Documentation
+
 ```
 
-Create subfolders:
+## 🚀 Getting Started
 
+### Prerequisites
+
+* Docker & Docker Compose
+* DBeaver (or any SQL Client)
+* Power BI Desktop (for visualization)
+
+### Installation & Setup
+
+1. **Clone the repository**
 ```bash
-mkdir dags, logs, plugins, postgres
-```
-
-Your structure:
+git clone https://github.com/Hanhiz/f1-dwh-project.git
+cd f1-data-engineering
 
 ```
-f1/
-├── dags/
-├── logs/
-├── plugins/
-├── postgres/
-└── docker-compose.yml
-```
 
----
 
-# 🐳 2️⃣ Create `docker-compose.yml`
-
-Inside `f1/`, create `docker-compose.yml` and paste:
-
-```yaml
-version: "3.8"
-
-services:
-  postgres:
-    image: postgres:15
-    container_name: f1_postgres
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: postgres
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: always
-
-  airflow:
-    image: apache/airflow:2.8.1
-    container_name: f1_airflow
-    depends_on:
-      - postgres
-    environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/postgres
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-    volumes:
-      - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
-      - ./plugins:/opt/airflow/plugins
-    ports:
-      - "8080:8080"
-    command: >
-      bash -c "
-      airflow db init &&
-      airflow users create
-        --username admin
-        --password admin
-        --firstname admin
-        --lastname admin
-        --role Admin
-        --email admin@example.com &&
-      airflow webserver & airflow scheduler
-      "
-```
-
----
-
-# ▶️ 3️⃣ Start the system
-
-From inside the `f1` folder:
-
+2. **Start Infrastructure**
+Run the docker-compose file to spin up 4 database containers and Airflow services.
 ```bash
-docker compose up -d
-```
-
-Check:
-
-```bash
-docker ps
-```
-
-You should see:
+docker-compose up -d
 
 ```
-f1_postgres
-f1_airflow
-```
 
----
 
-# 🔌 4️⃣ Connect DBeaver
+3. **Initialize Databases**
+Connect to the databases using DBeaver (User/Pass: see `docker-compose.yml`) and run the scripts in `db_scripts/`:
+* Run `source_telemetry.sql` on `localhost:5433`
+* Run `source_logistics.sql` on `localhost:5434`
+* Run `dwh_schema.sql` on `localhost:5435`
 
-Create PostgreSQL connection:
 
-| Field    | Value     |
-| -------- | --------- |
-| Host     | localhost |
-| Port     | 5432      |
-| Database | postgres  |
-| User     | airflow   |
-| Password | airflow   |
+4. **Access Airflow**
+* Go to `http://localhost:8080`
+* Login with `admin` / `admin`
+* Trigger the DAGs to start the ELT process.
 
-Test → OK.
 
----
 
-# 🏗️ 5️⃣ Create your two F1 service databases
+## 📊 Dashboard & Insights
 
-In DBeaver SQL Editor:
+The Power BI Dashboard (`bi/f1_dashboard.pbix`) connects to the DWH to provide insights such as:
 
-```sql
-CREATE DATABASE f1_race_operations;
-CREATE DATABASE f1_participant_reference;
-```
+* Driver Performance Analysis across seasons.
+* Constructor Championship points tracking.
+* Pitstop efficiency and correlation with race results.
 
-Refresh → you will see both.
+## 🛡️ Key Features
 
----
-
-Now your **F1 platform** is officially running inside Docker 🏎️
-DBeaver is connected, and you’re ready to import Kaggle data.
-
+* **Microservices Simulation:** Handles cross-database joins logic within the pipeline.
+* **Automated Pipeline:** Airflow schedules extract, load, and transform tasks.
+* **Data Modeling:** Implements Star Schema (Fact/Dimensions) for query performance.
+* **Containerization:** Fully isolated environment using Docker.

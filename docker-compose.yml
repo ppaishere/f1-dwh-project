@@ -1,27 +1,30 @@
 version: "3.8"
 
 services:
-  postgres:
+  # -------------------------------------------------------
+  # 1. HẠ TẦNG AIRFLOW (Metadata DB - Chỉ dùng cho Airflow)
+  # -------------------------------------------------------
+  postgres_airflow:
     image: postgres:15
-    container_name: f1_postgres
+    container_name: airflow_meta_db
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: postgres
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
+      POSTGRES_DB: airflow_db
     ports:
       - "5432:5432"
-    restart: always
+    volumes:
+      - airflow_db_data:/var/lib/postgresql/data # Dùng volume đặt tên cho gọn
 
   airflow:
     image: apache/airflow:2.8.1
     container_name: f1_airflow
     depends_on:
-      - postgres
+      - postgres_airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/postgres
+      # Kết nối vào DB airflow riêng biệt ở trên
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow_db
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
       - ./dags:/opt/airflow/dags
@@ -41,3 +44,45 @@ services:
         --email admin@example.com &&
       airflow webserver & airflow scheduler
       "
+
+  # -------------------------------------------------------
+  # 2. SOURCE 1: TELEMETRY SERVICE (Yêu cầu đề bài)
+  # -------------------------------------------------------
+  db_telemetry:
+    image: postgres:15
+    container_name: source_telemetry
+    environment:
+      POSTGRES_USER: user_telemetry
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: f1_telemetry
+    ports:
+      - "5433:5432" # Port ngoài 5433
+
+  # -------------------------------------------------------
+  # 3. SOURCE 2: LOGISTICS SERVICE (Yêu cầu đề bài)
+  # -------------------------------------------------------
+  db_logistics:
+    image: postgres:15
+    container_name: source_logistics
+    environment:
+      POSTGRES_USER: user_logistics
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: f1_logistics
+    ports:
+      - "5434:5432" # Port ngoài 5434
+
+  # -------------------------------------------------------
+  # 4. OLAP SERVER: DATA WAREHOUSE (Yêu cầu đề bài)
+  # -------------------------------------------------------
+  db_dwh:
+    image: postgres:15
+    container_name: f1_dwh
+    environment:
+      POSTGRES_USER: user_dwh
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: f1_dwh
+    ports:
+      - "5435:5432" # Port ngoài 5435
+
+volumes:
+  airflow_db_data:
