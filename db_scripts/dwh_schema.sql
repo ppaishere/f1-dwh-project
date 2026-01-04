@@ -42,14 +42,15 @@ CREATE TABLE staging.circuits (
     name VARCHAR(255),
     location VARCHAR(255),
     country VARCHAR(255),
-    lat FLOAT,
-    lng FLOAT,
-    alt INT,
+    lat FLOAT,         
+    lng FLOAT,         
+    alt INT,           
     url VARCHAR(255)
 );
 
 -- 2.2 Từ nguồn Telemetry
 DROP TABLE IF EXISTS staging.races;
+
 CREATE TABLE staging.races (
     raceId INT,
     year INT,
@@ -58,7 +59,17 @@ CREATE TABLE staging.races (
     name VARCHAR(255),
     date DATE,
     time TIME,
-    url VARCHAR(255)
+    url VARCHAR(255),
+    fp1_date DATE,
+    fp1_time TIME,
+    fp2_date DATE,
+    fp2_time TIME,
+    fp3_date DATE,
+    fp3_time TIME,
+    quali_date DATE,
+    quali_time TIME,
+    sprint_date DATE,
+    sprint_time TIME
 );
 
 DROP TABLE IF EXISTS staging.results;
