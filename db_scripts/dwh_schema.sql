@@ -13,21 +13,27 @@ CREATE SCHEMA IF NOT EXISTS staging;
 DROP TABLE IF EXISTS staging.drivers;
 CREATE TABLE staging.drivers (
     driverId INT, driverRef VARCHAR(255), number INT, code VARCHAR(10),
-    forename VARCHAR(255), surname VARCHAR(255), dob DATE, nationality VARCHAR(255), url VARCHAR(255)
+    forename VARCHAR(255), surname VARCHAR(255), dob DATE, nationality VARCHAR(255), url VARCHAR(255),
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    source_system VARCHAR(50)                           
 );
 
 -- 2. Constructors
 DROP TABLE IF EXISTS staging.constructors;
 CREATE TABLE staging.constructors (
     constructorId INT, constructorRef VARCHAR(255), name VARCHAR(255),
-    nationality VARCHAR(255), url VARCHAR(255)
+    nationality VARCHAR(255), url VARCHAR(255),
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    source_system VARCHAR(50)                           
 );
 
 -- 3. Circuits
 DROP TABLE IF EXISTS staging.circuits;
 CREATE TABLE staging.circuits (
     circuitId INT, circuitRef VARCHAR(255), name VARCHAR(255), location VARCHAR(255),
-    country VARCHAR(255), lat FLOAT, lng FLOAT, alt INT, url VARCHAR(255)
+    country VARCHAR(255), lat FLOAT, lng FLOAT, alt INT, url VARCHAR(255),
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    source_system VARCHAR(50)                           
 );
 
 -- 4. Races
@@ -37,7 +43,9 @@ CREATE TABLE staging.races (
     date DATE, time TIME, url VARCHAR(255),
     fp1_date DATE, fp1_time TIME, fp2_date DATE, fp2_time TIME,
     fp3_date DATE, fp3_time TIME, quali_date DATE, quali_time TIME,
-    sprint_date DATE, sprint_time TIME
+    sprint_date DATE, sprint_time TIME,
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source_system VARCHAR(50)                           
 );
 
 -- 5. Results
@@ -47,15 +55,20 @@ CREATE TABLE staging.results (
     number INT, grid INT, position INT, positionText VARCHAR(255),
     positionOrder INT, points FLOAT, laps INT, time VARCHAR(255), milliseconds INT,
     fastestLap INT, rank INT, fastestLapTime VARCHAR(255), fastestLapSpeed VARCHAR(255),
-    statusId INT 
+    statusId INT,
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source_system VARCHAR(50)                           
 );
 
 -- 6. Status (Bảng MỚI cần thêm để khớp ảnh)
 DROP TABLE IF EXISTS staging.status;
 CREATE TABLE staging.status (
     statusId INT,
-    status VARCHAR(255)
+    status VARCHAR(255),
+    load_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source_system VARCHAR(50)                       
 );
+
 
 -- ----------------------------------------------------------------
 -- PHẦN 2: PUBLIC (Star Schema)

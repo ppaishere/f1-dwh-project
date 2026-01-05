@@ -5,33 +5,26 @@ from datetime import datetime
 
 # 1. Hàm chung để chép dữ liệu từ Nguồn -> Staging
 def ingest_table(source_conn_id, source_table, target_conn_id, target_table):
-    # Kết nối tới nguồn (Source)
     source_hook = PostgresHook(postgres_conn_id=source_conn_id)
-    # Kết nối tới đích (DWH)
     target_hook = PostgresHook(postgres_conn_id=target_conn_id)
     
-    # --- ĐOẠN CODE KIỂM TRA (DEBUG) ---
-    # Lấy thông tin kết nối thực tế để xem nó đang chui vào đâu
-    conn = source_hook.get_conn()
-    print(f"\n--- [DEBUG INFO] ---")
-    print(f"Task đang chạy với Connection ID: {source_conn_id}")
-    print(f"Đang kết nối tới DB Name: {conn.info.dbname}") # <--- QUAN TRỌNG
-    print(f"Đang kết nối tới Host: {conn.info.host}")
-    print(f"Đang tìm bảng: {source_table}")
-    print(f"--------------------\n")
-    # ----------------------------------
-
-    # Lấy dữ liệu
+    # 1. Lấy dữ liệu
     print(f"Extracting data from {source_table}...")
     records = source_hook.get_records(sql=f"SELECT * FROM {source_table}")
     
-    # Xóa dữ liệu cũ ở Staging (để tránh trùng lặp khi chạy lại)
+    # 2. Bổ sung Metadata: load_timestamp và source_system
+    load_timestamp = datetime.now()
+    # Thêm 2 cột metadata vào cuối mỗi row (tuple)
+    enriched_records = [tuple(list(row) + [load_timestamp, source_conn_id]) for row in records]
+    
+    # 3. Xóa và nạp lại
     print(f"Clearing staging table {target_table}...")
     target_hook.run(f"TRUNCATE TABLE {target_table}")
     
-    # Đổ dữ liệu mới vào
-    print(f"Loading {len(records)} rows into {target_table}...")
-    target_hook.insert_rows(table=target_table, rows=records)
+    # 4. Lưu ý: target_hook.insert_rows cần biết danh sách cột nếu table đích có nhiều cột hơn source
+    # Hoặc bạn phải đảm bảo cấu trúc bảng staging đã có sẵn 2 cột này ở cuối
+    print(f"Loading {len(enriched_records)} rows into {target_table} with metadata...")
+    target_hook.insert_rows(table=target_table, rows=enriched_records)
 
 # 2. Định nghĩa DAG
 default_args = {
