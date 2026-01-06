@@ -1,4 +1,4 @@
--- import các data bảng dim
+-- import các data bảng di
 
 INSERT INTO public.dim_circuits (circuitId, name, location, country)
 SELECT 
