@@ -77,6 +77,29 @@ WHERE res.resultId IS NOT NULL
   AND res.driverId IS NOT NULL
   AND res.constructorId IS NOT NULL;
 
+
+-- nối các bảng
+ALTER TABLE public.fact_race_results
+ADD CONSTRAINT fk_fact_driver
+FOREIGN KEY (driverId) REFERENCES public.dim_drivers(driverId);
+
+ALTER TABLE public.fact_race_results
+ADD CONSTRAINT fk_fact_race
+FOREIGN KEY (raceId) REFERENCES public.dim_races(raceId);
+
+ALTER TABLE public.fact_race_results
+ADD CONSTRAINT fk_fact_constructor
+FOREIGN KEY (constructorId) REFERENCES public.dim_constructors(constructorId);
+
+ALTER TABLE public.fact_race_results
+ADD CONSTRAINT fk_fact_circuit
+FOREIGN KEY (circuitId) REFERENCES public.dim_circuits(circuitId);
+
+ALTER TABLE public.fact_race_results
+ADD CONSTRAINT fk_fact_status
+FOREIGN KEY (statusId) REFERENCES public.dim_status(statusId);
+
+
 -- kiểm tra dữ liệu các bảng dim 
 -- 1. Kiểm tra dim_circuits
 SELECT COUNT(*) FROM public.dim_circuits;
